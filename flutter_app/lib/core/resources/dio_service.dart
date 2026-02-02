@@ -107,10 +107,10 @@ class DioService implements ApiService {
             e.type == DioExceptionType.receiveTimeout) {
           throw FetchDataException(0, 'Request timed out');
         }
-        if(e.type == DioExceptionType.connectionTimeout){
+        if(e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.connectionError){
           throw FetchDataException(0, 'Server is down or unreachable');
         }
-        if (e.error is SocketException || e.type == DioExceptionType.connectionError) {
+        if (e.error is SocketException) {
           throw FetchDataException(0, 'No internet connection');
         }
 

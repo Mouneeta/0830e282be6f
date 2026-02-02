@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../core/platform/device_vitals_channel.dart';
 import '../../domain/entities/analytics_entity.dart';
 import '../bloc/device_vitals_bloc.dart';
@@ -20,16 +21,12 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   Map<String, dynamic> deviceStatus = {};
   StreamSubscription? _blocSubscription;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     fetchDeviceStatus();
-
-    // Fetch analytics for performance overview
-    /* Future.microtask(() {
-      context.read<DeviceVitalsBloc>().add(const FetchAnalytics());
-    });*/
 
     // Option 1: manual Bloc listener
     final bloc = context.read<DeviceVitalsBloc>();
@@ -76,11 +73,16 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> fetchDeviceStatus() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
     final status = await DeviceVitalChannel().getDeviceStatus();
     if (!mounted) return;
 
     setState(() {
       deviceStatus = status;
+      _isRefreshing = false;
       log("Device Status: $deviceStatus");
     });
   }
@@ -194,11 +196,22 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
 
                 ElevatedButton.icon(
-                  onPressed: ()=> fetchDeviceStatus(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text(
-                    'Refresh Status',
-                    style: TextStyle(fontSize: 14),
+                  onPressed: _isRefreshing ? null : () => fetchDeviceStatus(),
+                  icon: _isRefreshing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.refresh),
+                  label: Text(
+                    _isRefreshing ? 'Refreshing...' : 'Refresh Status',
+                    style: const TextStyle(fontSize: 14),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -259,7 +272,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         _buildMetricCard(
           title: 'Thermal',
-          value: '${deviceData["thermal_value"] ?? 'N/A'}°C',
+          value: '${deviceData["thermal_value"] ?? 'N/A'}',
           color: Colors.orange,
           icon: Icon(Icons.thermostat, color: Colors.orange, size: 25),
         ),
@@ -295,7 +308,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Text(
                 title,
                 style: TextStyle(
-                  color: color,
+                   color: color,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -303,6 +316,15 @@ class _DashboardPageState extends State<DashboardPage> {
               icon,
             ],
           ),
+          title == 'Thermal' ?
+          Text(
+            value == '0' ? 'None (0)' : value == '1' ? 'Low (1)' : value == '2' ? 'Moderate (2)' : value == '3' ? 'Severe (3)' : 'High ($value)',
+            style: TextStyle(
+              color: color,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ) :
           Text(
             value,
             style: TextStyle(
@@ -310,7 +332,7 @@ class _DashboardPageState extends State<DashboardPage> {
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
-          ),
+          )
         ],
       ),
     );
@@ -354,7 +376,7 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               _buildAnalyticsMetric(
                 'Avg Thermal',
-                '${analytics.avgThermalValue.toStringAsFixed(1)}°C',
+                analytics.avgThermalValue.toStringAsFixed(1),
                 Colors.orange,
                 Icons.thermostat,
               ),
@@ -374,43 +396,292 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           const SizedBox(height: 20),
           const Divider(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
-          // Min/Max Comparison Chart
+          // Chart Title
+          const Text(
+            'Min, Average & Max Values',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Bar Chart using fl_chart
           SizedBox(
-            height: 150,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildComparisonBar(
-                  'Thermal',
-                  analytics.avgThermalValue.toDouble(),
-                  analytics.maxThermalValue.toDouble(),
-                  100.0,
-                  Colors.orange,
+            height: 200,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: 100,
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (group) => Colors.grey[800]!,
+                    tooltipPadding: const EdgeInsets.all(8),
+                    tooltipMargin: 8,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      String label;
+                      String unit;
+                      num actualValue;
+
+                      switch (groupIndex) {
+                        case 0: // Thermal
+                          unit = '';
+                          if (rodIndex == 0) {
+                            label = 'Average';
+                            actualValue = analytics.avgThermalValue;
+                          } else {
+                            label = 'Maximum';
+                            actualValue = analytics.maxThermalValue;
+                          }
+                          break;
+                        case 1: // Battery
+                          unit = '%';
+                          if (rodIndex == 0) {
+                            label = 'Minimum';
+                            actualValue = analytics.minBatteryLevel.toDouble();
+                          } else {
+                            label = 'Average';
+                            actualValue = analytics.avgBatteryLevel.toDouble();
+                          }
+                          break;
+                        case 2: // Memory
+                          unit = ' MB';
+                          if (rodIndex == 0) {
+                            label = 'Average';
+                            actualValue = analytics.avgMemoryUsage.toDouble();
+                          } else {
+                            label = 'Maximum';
+                            actualValue = analytics.maxMemoryUsage.toDouble();
+                          }
+                          break;
+                        default:
+                          label = '';
+                          unit = '';
+                          actualValue = 0;
+                      }
+                      return BarTooltipItem(
+                        '$label\n${actualValue.toStringAsFixed(1)}$unit',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      );
+                    },
+                  ),
                 ),
-                _buildComparisonBar(
-                  'Battery',
-                  analytics.minBatteryLevel.toDouble(),
-                  analytics.avgBatteryLevel.toDouble(),
-                  100.0,
-                  Colors.green,
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        const style = TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        );
+                        switch (value.toInt()) {
+                          case 0:
+                            return const Text('Thermal)', style: style, textAlign: TextAlign.center);
+                          case 1:
+                            return const Text('Battery\n(%)', style: style, textAlign: TextAlign.center);
+                          case 2:
+                            return const Text('Memory\n(MB)', style: style, textAlign: TextAlign.center);
+                          default:
+                            return const Text('');
+                        }
+                      },
+                      reservedSize: 40,
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) {
+                        return Text(
+                          value.toInt().toString(),
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 10,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
-                _buildComparisonBar(
-                  'Memory',
-                  analytics.avgMemoryUsage.toDouble(),
-                  analytics.maxMemoryUsage.toDouble(),
-                  analytics.maxMemoryUsage > 0
-                      ? analytics.maxMemoryUsage.toDouble()
-                      : 100.0,
-                  Colors.blue,
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 20,
+                  getDrawingHorizontalLine: (value) {
+                    return FlLine(
+                      color: Colors.grey[300]!,
+                      strokeWidth: 1,
+                    );
+                  },
                 ),
-              ],
+                borderData: FlBorderData(
+                  show: false,
+                ),
+                barGroups: [
+                  // Thermal (Avg vs Max)
+                  BarChartGroupData(
+                    x: 0,
+                    barRods: [
+                      BarChartRodData(
+                        toY: analytics.avgThermalValue.toDouble(),
+                        color: Colors.orange.withValues(alpha: 0.6),
+                        width: 16,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                      ),
+                      BarChartRodData(
+                        toY: analytics.maxThermalValue.toDouble(),
+                        color: Colors.orange,
+                        width: 16,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Battery (Min vs Avg)
+                  BarChartGroupData(
+                    x: 1,
+                    barRods: [
+                      BarChartRodData(
+                        toY: analytics.minBatteryLevel.toDouble(),
+                        color: Colors.green.withValues(alpha: 0.6),
+                        width: 16,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                      ),
+                      BarChartRodData(
+                        toY: analytics.avgBatteryLevel.toDouble(),
+                        color: Colors.green,
+                        width: 16,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Memory (Avg vs Max) - normalized to 100 scale
+                  BarChartGroupData(
+                    x: 2,
+                    barRods: [
+                      BarChartRodData(
+                        toY: _normalizeMemory(
+                          analytics.avgMemoryUsage.toDouble(),
+                          analytics.maxMemoryUsage.toDouble(),
+                        ),
+                        color: Colors.blue.withValues(alpha: 0.6),
+                        width: 16,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                      ),
+                      BarChartRodData(
+                        toY: _normalizeMemory(
+                          analytics.maxMemoryUsage.toDouble(),
+                          analytics.maxMemoryUsage.toDouble(),
+                        ),
+                        color: Colors.blue,
+                        width: 16,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Legend with better explanation
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              _buildLegendItem('Thermal: Avg & Max', Colors.orange),
+              _buildLegendItem('Battery: Min & Avg', Colors.green),
+              _buildLegendItem('Memory: Avg & Max', Colors.blue),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Text(
+              'Tap on bars to see exact values',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[500],
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  double _normalizeMemory(double value, double maxValue) {
+    if (maxValue == 0) return 0;
+    return (value / maxValue * 100).clamp(0, 100);
+  }
+
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -495,65 +766,6 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
         const SizedBox(height: 4),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-      ],
-    );
-  }
-
-  Widget _buildComparisonBar(
-    String label,
-    double value1,
-    double value2,
-    double maxValue,
-    Color color,
-  ) {
-    final height1 = (value1 / maxValue * 120).clamp(10.0, 120.0);
-    final height2 = (value2 / maxValue * 120).clamp(10.0, 120.0);
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Column(
-              children: [
-                Text(
-                  value1.toStringAsFixed(0),
-                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: 20,
-                  height: height1,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 6),
-            Column(
-              children: [
-                Text(
-                  value2.toStringAsFixed(0),
-                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  width: 20,
-                  height: height2,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
       ],
     );
   }

@@ -380,7 +380,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 children: [
                   _buildMetricChip(
                     icon: Icons.thermostat,
-                    label: '${data.thermalValue}°C',
+                    label: '${data.thermalValue}',
                     color: data.thermalValue > 45 ? Colors.red : Colors.orange,
                   ),
                   _buildMetricChip(
@@ -466,7 +466,7 @@ class _HistoryPageState extends State<HistoryPage> {
               _buildDetailRow('Device ID', data.deviceId),
               _buildDetailRow('Timestamp', data.timestamp.toString().substring(0, 19)),
               const Divider(),
-              _buildDetailRow('Thermal Value', '${data.thermalValue}°C'),
+              _buildDetailRow('Thermal Value', '${data.thermalValue}'),
               _buildDetailRow('Battery Level', '${data.batteryLevel}%'),
               _buildDetailRow('Memory Usage', '${(data.memoryUsage / 1024).toStringAsFixed(2)} GB'),
               const Divider(),
@@ -618,7 +618,7 @@ class _HistoryPageState extends State<HistoryPage> {
               Expanded(
                 child: _buildAnalyticsItem(
                   'Avg Thermal',
-                  '${analytics.avgThermalValue.toStringAsFixed(1)}°C',
+                  analytics.avgThermalValue.toStringAsFixed(1),
                   Icons.thermostat,
                   Colors.orange,
                 ),
@@ -649,7 +649,7 @@ class _HistoryPageState extends State<HistoryPage> {
               Expanded(
                 child: _buildAnalyticsItem(
                   'Max Thermal',
-                  '${analytics.maxThermalValue.toStringAsFixed(1)}°C',
+                  analytics.maxThermalValue.toStringAsFixed(1),
                   Icons.trending_up,
                   Colors.red,
                 ),

@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flutter_app/data/data_source/local/local_storage_service.dart';
 import 'package:flutter_app/data/model/analytics_response.dart';
 import 'package:flutter_app/data/model/device_response.dart';
 import 'package:flutter_app/domain/entities/analytics_entity.dart';
@@ -8,13 +9,16 @@ import 'package:flutter_app/domain/entities/device_response_entity.dart';
 import 'package:flutter_app/domain/repository/device_repository.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
+import 'package:get_it/get_it.dart';
 import '../../core/resources/api_service.dart';
 import '../../core/resources/service_locator.dart';
+import '../../core/storage/device_vitals_hive_model.dart';
 import '../data_source/remote/remote_service.dart';
 
 class DeviceRepositoryImpl implements DeviceRepository {
 
   final api = Get.find<ServiceLocator>().apiService();
+  final _localStorage = GetIt.instance<LocalStorageService>();
 
   @override
   Future<DeviceResponseEntity> getDeviceVitals({int? page, int? limit}) async {
@@ -30,14 +34,13 @@ class DeviceRepositoryImpl implements DeviceRepository {
         url: RemoteEndpoint.getDeviceVitals,
         queryParams: queryParams.isNotEmpty ? queryParams : null,
         builder: (data) {
-          log('API Response Data: $data'); // Debug log
+          log('API Response Data: $data');
           log('Repository - API response received');
           
           if (data == null) {
             throw Exception('API returned null data');
           }
           
-          // Handle if data is already a Map
           if (data is Map<String, dynamic>) {
             return DeviceResponse.fromJson(data);
           }
@@ -47,10 +50,60 @@ class DeviceRepositoryImpl implements DeviceRepository {
       );
 
       log('Repository - Mapping response to entity');
-      return _mapToEntity(response);
+      final entity = _mapToEntity(response);
+      
+      // Save to local storage for offline access
+      try {
+        final hiveModels = response.data.map((deviceData) => 
+          DeviceVitalsHiveModel(
+            deviceId: deviceData.deviceId,
+            timestamp: deviceData.timestamp,
+            thermalValue: deviceData.thermalValue,
+            batteryLevel: deviceData.batteryLevel,
+            memoryUsage: deviceData.memoryUsage,
+          )
+        ).toList();
+        
+        await _localStorage.saveDeviceVitals(hiveModels);
+        log('Repository - Saved ${hiveModels.length} vitals to local storage');
+      } catch (e) {
+        log('Repository - Error saving to local storage: $e');
+        // Don't throw, just log - we still have the API data
+      }
+      
+      return entity;
     } catch (e) {
       log('Repository - Error in getDeviceVitals: $e');
-      throw Exception(e);
+      log('Repository - Attempting to load from local storage');
+      
+      // Fallback to local storage when API fails
+      try {
+        final localVitals = _localStorage.getDeviceVitals();
+        
+        if (localVitals.isEmpty) {
+          log('Repository - No local data available');
+          throw Exception('No internet connection and no cached data available');
+        }
+        
+        log('Repository - Loaded ${localVitals.length} vitals from local storage');
+        
+        // Convert Hive models to entities
+        final entities = localVitals.map((hiveModel) => DeviceDataEntity(
+          deviceId: hiveModel.deviceId,
+          timestamp: hiveModel.timestamp,
+          thermalValue: hiveModel.thermalValue,
+          batteryLevel: hiveModel.batteryLevel,
+          memoryUsage: hiveModel.memoryUsage,
+        )).toList();
+        
+        return DeviceResponseEntity(
+          count: entities.length,
+          data: entities,
+        );
+      } catch (localError) {
+        log('Repository - Error loading from local storage: $localError');
+        throw Exception('Failed to load data: $e');
+      }
     }
   }
   
@@ -66,21 +119,7 @@ class DeviceRepositoryImpl implements DeviceRepository {
       )).toList(),
     );
   }
-  
-  DeviceResponseEntity _getMockData() {
-    return DeviceResponseEntity(
-      count: 1,
-      data: [
-        DeviceDataEntity(
-          deviceId: 'MOCK-DEVICE-001',
-          timestamp: DateTime.now(),
-          thermalValue: 42,
-          batteryLevel: 85,
-          memoryUsage: 4200, // 4.2 GB in MB
-        ),
-      ],
-    );
-  }
+
 
 
 
@@ -113,6 +152,23 @@ class DeviceRepositoryImpl implements DeviceRepository {
       );
       
       log('Device vitals posted successfully');
+      
+      // Save posted vital to local storage
+      try {
+        final hiveModel = DeviceVitalsHiveModel(
+          deviceId: deviceId,
+          timestamp: DateTime.now(),
+          thermalValue: thermalValue,
+          batteryLevel: batteryLevel,
+          memoryUsage: memoryUsage,
+        );
+        
+        await _localStorage.addDeviceVital(hiveModel);
+        log('Repository - Saved posted vital to local storage');
+      } catch (e) {
+        log('Repository - Error saving posted vital to local storage: $e');
+        // Don't throw, posting was successful
+      }
     } catch (e) {
       log('Error posting device vitals: $e');
       rethrow;
