@@ -140,9 +140,7 @@ class DioService implements ApiService {
           default:
             throw FetchDataException(
               statusCode,
-              '${e.message ?? e.error.toString()}${statusCode > 0
-                  ? ' StatusCode : $statusCode'
-                  : ''}',
+              '${e.message ?? e.error.toString()}${statusCode > 0 ? ' StatusCode : $statusCode' : ''}',
               res,
             );
         }

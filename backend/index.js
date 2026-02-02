@@ -121,7 +121,6 @@ app.get('/api/vitals/analytics', (req, res) => {
     SELECT thermal_value, battery_level, memory_usage
     FROM vitals
     ORDER BY datetime(timestamp) DESC
-    LIMIT 10
   `;
 
   db.all(query, [], (err, rows) => {
