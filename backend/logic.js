@@ -49,17 +49,20 @@ function calculateAnalytics(rows) {
     };
   }
 
+  // Take only last 10 records (most recent first)
+  const limitedRows = rows.slice(0, 10);
+
   const totals = { thermal: 0, battery: 0, memory: 0 };
 
   let min = {
-    thermal: rows[0].thermal_value,
-    battery: rows[0].battery_level,
-    memory: rows[0].memory_usage,
+    thermal: limitedRows[0].thermal_value,
+    battery: limitedRows[0].battery_level,
+    memory: limitedRows[0].memory_usage,
   };
 
   let max = { ...min };
 
-  rows.forEach((row) => {
+  limitedRows.forEach((row) => {
     totals.thermal += row.thermal_value;
     totals.battery += row.battery_level;
     totals.memory += row.memory_usage;
@@ -74,11 +77,11 @@ function calculateAnalytics(rows) {
   });
 
   return {
-    count: rows.length,
+    count: limitedRows.length,
     rolling_average: {
-      thermal: totals.thermal / rows.length,
-      battery: totals.battery / rows.length,
-      memory: totals.memory / rows.length,
+      thermal: totals.thermal / limitedRows.length,
+      battery: totals.battery / limitedRows.length,
+      memory: totals.memory / limitedRows.length,
     },
     min,
     max,

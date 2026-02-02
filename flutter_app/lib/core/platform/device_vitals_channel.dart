@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class DeviceVitalChannel {
@@ -10,6 +12,7 @@ class DeviceVitalChannel {
       return Map<String, dynamic>.from(result);
     } on PlatformException catch (e) {
       log("Failed to get device status: '${e.message}'.");
+      SnackBar(content: Text(e.message ?? 'Platform exception occurred'));
       return {};
     }
   }

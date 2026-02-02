@@ -98,7 +98,57 @@ If clarification were available, I would ask:
 
 These questions would help refine scalability, data retention, and analytics accuracy.
 
+## Ambiguity 4: Platform Selection for Native Integration
+
+**Question**:  
+Which platform should be targeted for implementing native MethodChannel functionality?
+
+**Options Considered**:
+- **Option A**: Implement MethodChannel for both Android and iOS.
+- **Option B**: Implement MethodChannel for Android only.
+- **Option C**: Avoid native code and mock device-level data.
+
+**Decision**:  
+I chose **Option B**, implementing native functionality on Android only.
+
+**Reasoning**:  
+The assignment requires demonstrating native integration rather than cross-platform completeness. Android allows easier access to system-level identifiers such as `ANDROID_ID` without additional entitlements or permissions, making it suitable for a focused implementation within the assignment scope.
+
+**Trade-offs**:
+- iOS platform is not supported.
+- Platform-specific code reduces cross-platform parity.
+
+**Assumptions**:
+- Demonstrating correct native integration is more valuable than partial implementations across platforms.
+- The evaluation prioritizes technical correctness and clarity over platform coverage.
+
+
 ---
+
+## Ambiguity 5: Backend Data Storage Selection
+
+**Question**:  
+What database should be used to persist device vitals data on the backend?
+
+**Options Considered**:
+- **Option A**: In-memory storage.
+- **Option B**: SQLite.
+- **Option C**: External database (PostgreSQL / MongoDB).
+
+**Decision**:  
+I chose **Option B**, using SQLite for data persistence.
+
+**Reasoning**:  
+SQLite provides lightweight, file-based persistence without requiring additional infrastructure. It ensures data survives server restarts while keeping the backend simple and easy to run locally, which aligns with assignment constraints.
+
+**Trade-offs**:
+- Limited scalability compared to external databases.
+- Not suitable for high-concurrency production systems.
+
+**Assumptions**:
+- The backend will be run locally for evaluation.
+- Simplicity and reproducibility are more important than horizontal scalability for this assignment.
+
 
 ## Summary
 

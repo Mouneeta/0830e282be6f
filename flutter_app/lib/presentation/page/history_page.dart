@@ -278,15 +278,28 @@ class _HistoryPageState extends State<HistoryPage> {
             );
           }
 
-          return Center(
+          return  Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CircularProgressIndicator(),
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 60,
+                ),
                 const SizedBox(height: 16),
                 Text(
-                  'Loading history...',
-                  style: TextStyle(color: Colors.grey[600]),
+                  'Server is down or unreachable',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<DeviceVitalsBloc>().add(FetchDeviceVitals(page: 1, limit: _itemsPerPage));
+                    context.read<DeviceVitalsBloc>().add(const FetchAnalytics());
+                  },
+                  child: const Text('Load cached data', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),),
                 ),
               ],
             ),
