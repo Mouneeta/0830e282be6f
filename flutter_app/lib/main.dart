@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:get/get.dart';
 import 'config/routes/app_router.dart';
-import 'config/themes/app_theme.dart';
 import 'core/resources/service_locator.dart';
 import 'data/repositories/device_repository_impl.dart';
 import 'domain/repository/device_repository.dart';
@@ -79,7 +78,6 @@ class VitalMonitor extends StatelessWidget {
         routerDelegate: router.appRouter.routerDelegate,
         routeInformationParser: router.appRouter.routeInformationParser,
         routeInformationProvider: router.appRouter.routeInformationProvider,
-        theme: AppThemes.primary(),
         builder: (context, child) {
           final MediaQueryData data = MediaQuery.of(context);
 

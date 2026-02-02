@@ -1,5 +1,6 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers, unnecessary_getters_setters, avoid_annotating_with_dynamic, avoid_catching_errors
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -17,9 +18,9 @@ class DioService implements ApiService {
   DioService({String? baseUrl}) {
     dio = Dio();
     dio.options.baseUrl = baseUrl ?? '';
-    dio.options.sendTimeout = const Duration(seconds: 15);
-    dio.options.connectTimeout = const Duration(seconds: 15);
-    dio.options.receiveTimeout = const Duration(seconds: 15);
+    dio.options.sendTimeout = const Duration(seconds: 5);
+    dio.options.connectTimeout = const Duration(seconds: 5);
+    dio.options.receiveTimeout = const Duration(seconds: 5);
     dio.options.headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -44,9 +45,6 @@ class DioService implements ApiService {
     FormData? formData,
   }) async {
     try {
-      final options = Options(
-        method: method.name,
-      );
 
       dynamic data;
       if (requestBody != null) {
@@ -89,13 +87,13 @@ class DioService implements ApiService {
           break;
       }
 
-      print('Response status: ${response.statusCode}');
-      print('Response data type: ${response.data.runtimeType}');
-      print('Response data: ${response.data}');
+      log('Response status: ${response.statusCode}');
+      log('Response data type: ${response.data.runtimeType}');
+      log('Response data: ${response.data}');
 
       // Handle null response
       if (response.data == null) {
-        print('Warning: API returned null response for $url');
+        log('Warning: API returned null response for $url');
         throw FetchDataException(
           response.statusCode ?? 0,
           'API returned empty response',
@@ -109,12 +107,10 @@ class DioService implements ApiService {
             e.type == DioExceptionType.receiveTimeout) {
           throw FetchDataException(0, 'Request timed out');
         }
-        if(e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout){
+        if(e.type == DioExceptionType.connectionTimeout){
           throw FetchDataException(0, 'Server is down or unreachable');
         }
-        if (CancelToken.isCancel(e)) {
-          throw FetchDataException(0, '');
-        } else if (e.error is SocketException) {
+        if (e.error is SocketException || e.type == DioExceptionType.connectionError) {
           throw FetchDataException(0, 'No internet connection');
         }
 

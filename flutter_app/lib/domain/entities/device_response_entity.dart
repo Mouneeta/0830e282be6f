@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'device_data_entity.dart';
 
 class DeviceResponseEntity extends Equatable {
-  final int count;
+  final num count;
   final List<DeviceDataEntity> data;
 
   const DeviceResponseEntity({

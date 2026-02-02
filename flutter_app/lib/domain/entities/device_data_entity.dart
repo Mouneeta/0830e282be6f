@@ -3,9 +3,9 @@ import 'package:equatable/equatable.dart';
 class DeviceDataEntity extends Equatable {
   final String deviceId;
   final DateTime timestamp;
-  final int thermalValue;
-  final int batteryLevel;
-  final int memoryUsage;
+  final num thermalValue;
+  final num batteryLevel;
+  final num memoryUsage;
 
   const DeviceDataEntity({
     required this.deviceId,

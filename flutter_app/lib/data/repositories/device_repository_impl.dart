@@ -19,19 +19,19 @@ class DeviceRepositoryImpl implements DeviceRepository {
   @override
   Future<DeviceResponseEntity> getDeviceVitals({int? page, int? limit}) async {
     try {
-      print('Repository - getDeviceVitals called: page=$page, limit=$limit');
+      log('Repository - getDeviceVitals called: page=$page, limit=$limit');
       final queryParams = <String, dynamic>{};
       if (page != null) queryParams['page'] = page;
       if (limit != null) queryParams['limit'] = limit;
-      
-      print('Repository - Making API request to ${RemoteEndpoint.getDeviceVitals}');
+
+      log('Repository - Making API request to ${RemoteEndpoint.getDeviceVitals}');
       final response = await api.request(
         method: HttpMethod.get,
         url: RemoteEndpoint.getDeviceVitals,
         queryParams: queryParams.isNotEmpty ? queryParams : null,
         builder: (data) {
           log('API Response Data: $data'); // Debug log
-          print('Repository - API response received');
+          log('Repository - API response received');
           
           if (data == null) {
             throw Exception('API returned null data');
@@ -45,11 +45,11 @@ class DeviceRepositoryImpl implements DeviceRepository {
           throw Exception('Unexpected data type: ${data.runtimeType}');
         },
       );
-      
-      print('Repository - Mapping response to entity');
+
+      log('Repository - Mapping response to entity');
       return _mapToEntity(response);
     } catch (e) {
-      print('Repository - Error in getDeviceVitals: $e');
+      log('Repository - Error in getDeviceVitals: $e');
       throw Exception(e);
     }
   }
@@ -93,28 +93,28 @@ class DeviceRepositoryImpl implements DeviceRepository {
   }) async {
     try {
       final requestBody = {
-        'device_id': deviceId,
-        'timestamp': DateTime.now().toIso8601String(),
-        'thermal_value': thermalValue,
-        'battery_level': batteryLevel,
-        'memory_usage': memoryUsage,
+        'device_id':  deviceId,
+        'timestamp':  DateTime.now().toIso8601String(),
+        'thermal_value':  thermalValue,
+        'battery_level':  batteryLevel,
+        'memory_usage':  0.5, // memoryUsage,
       };
       
-      print('Posting device vitals: $requestBody');
+      log('Posting device vitals: $requestBody');
       
       await api.request(
         method: HttpMethod.post,
         url: RemoteEndpoint.postDeviceVitals,
         requestBody: requestBody,
         builder: (data) {
-          print('Post response: $data');
+          log('Post response: $data');
           return data;
         },
       );
       
-      print('Device vitals posted successfully');
+      log('Device vitals posted successfully');
     } catch (e) {
-      print('Error posting device vitals: $e');
+      log('Error posting device vitals: $e');
       rethrow;
     }
   }
@@ -122,14 +122,14 @@ class DeviceRepositoryImpl implements DeviceRepository {
   @override
   Future<AnalyticsEntity> getDeviceVitalsAnalytics() async {
     try {
-      print('Repository - getDeviceVitalsAnalytics called');
-      print('Repository - Making API request to ${RemoteEndpoint.getDeviceVitalsAnalytics}');
+      log('Repository - getDeviceVitalsAnalytics called');
+      log('Repository - Making API request to ${RemoteEndpoint.getDeviceVitalsAnalytics}');
       final response = await api.request(
         method: HttpMethod.get,
         url: RemoteEndpoint.getDeviceVitalsAnalytics,
         builder: (data) {
           log('Analytics API Response: $data');
-          print('Repository - Analytics API response received');
+          log('Repository - Analytics API response received');
           
           if (data == null) {
             throw Exception('API returned null data');
@@ -143,7 +143,7 @@ class DeviceRepositoryImpl implements DeviceRepository {
         },
       );
       
-      print('Repository - Mapping analytics response to entity');
+      log('Repository - Mapping analytics response to entity');
       return AnalyticsEntity(
         avgThermalValue: response.avgThermalValue,
         avgBatteryLevel: response.avgBatteryLevel,
@@ -153,8 +153,8 @@ class DeviceRepositoryImpl implements DeviceRepository {
         maxMemoryUsage: response.maxMemoryUsage,
       );
     } catch (e) {
-      print('Repository - Error in getDeviceVitalsAnalytics: $e');
-      throw Exception('Failed to fetch analytics: $e');
+      log('Repository - Error in getDeviceVitalsAnalytics: $e');
+      throw Exception(e);
     }
   }
 

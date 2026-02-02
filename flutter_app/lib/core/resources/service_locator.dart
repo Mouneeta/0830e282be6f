@@ -6,7 +6,7 @@ class ServiceLocator {
 
 
   ApiService apiService() {
-    _apiService ??= DioService(baseUrl: 'http://192.168.0.101:3000');
+    _apiService ??= DioService(baseUrl: 'http://192.168.0.103:3000');
 
     return _apiService!;
   }

@@ -60,24 +60,24 @@ class MainActivity : FlutterActivity() {
 
     private fun getMappedThermalStatus(context: Context): Int {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            println("Thermal status API not available on this Android version")
-            return -1 // fallback for older versions
+            throw RuntimeException("Thermal status is not supported below Android API 29")
         }
 
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val status = powerManager.currentThermalStatus
 
         return when (status) {
-            PowerManager.THERMAL_STATUS_NONE -> 0   // Normal
-            PowerManager.THERMAL_STATUS_LIGHT -> 1  // Light
-            PowerManager.THERMAL_STATUS_MODERATE -> 2 // Moderate
-            PowerManager.THERMAL_STATUS_SEVERE -> 3   // Severe
+            PowerManager.THERMAL_STATUS_NONE -> 0
+            PowerManager.THERMAL_STATUS_LIGHT -> 1
+            PowerManager.THERMAL_STATUS_MODERATE -> 2
+            PowerManager.THERMAL_STATUS_SEVERE -> 3
             PowerManager.THERMAL_STATUS_CRITICAL,
             PowerManager.THERMAL_STATUS_EMERGENCY,
-            PowerManager.THERMAL_STATUS_SHUTDOWN -> 4 // Optional: map higher levels
-            else -> -1 // Unknown
+            PowerManager.THERMAL_STATUS_SHUTDOWN -> 4 // clamp to max per spec
+            else -> throw RuntimeException("Unknown thermal status: $status")
         }
     }
+
 
     private fun getUniqueDeviceId(): String {
         return Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"

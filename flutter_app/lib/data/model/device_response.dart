@@ -1,5 +1,5 @@
 class DeviceResponse {
-  final int count;
+  final num count;
   final List<DeviceData> data;
 
   DeviceResponse({
@@ -28,9 +28,9 @@ class DeviceResponse {
 class DeviceData {
   final String deviceId;
   final DateTime timestamp;
-  final int thermalValue;
-  final int batteryLevel;
-  final int memoryUsage;
+  final num thermalValue;
+  final num batteryLevel;
+  final num memoryUsage;
 
   DeviceData({
     required this.deviceId,

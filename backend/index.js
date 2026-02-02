@@ -81,6 +81,8 @@ app.get('/api/vitals', (req, res) => {
   // Get page and limit from query params, set defaults
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 100;
+
+  if (limit > 100) limit = 100;
   const offset = (page - 1) * limit;
 
   const query = `
