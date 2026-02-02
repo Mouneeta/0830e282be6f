@@ -97,14 +97,6 @@ This backend is designed to be **simple**, **easy to set up**, and suitable for 
 
 ---
 
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
----
-
 # 📱 Flutter App – Device Vitals Monitor
 
 A cross-platform mobile application built with Flutter for monitoring and visualizing device vitals data with offline-first architecture.
@@ -159,15 +151,10 @@ flutter_app/
 
 Before you begin, ensure you have the following installed:
 
-- **Flutter 3.8.0** - [Installation guide](https://docs.flutter.dev/get-started/install)
+- **Flutter 3.38.8 - [Installation guide](https://docs.flutter.dev/get-started/install)
 - **Dart SDK** (comes with Flutter)
-- **Android Studio** or **Xcode** (for mobile development)
 - **VS Code** or **Android Studio** (recommended IDEs)
 
-Verify your installation:
-```bash
-flutter doctor
-```
 
 ---
 
@@ -192,29 +179,6 @@ flutter doctor
    ```bash
    flutter pub run flutter_launcher_icons
    ```
-
----
-
-## 🏃 Running the App
-
-### Run on connected device/emulator:
-```bash
-flutter run
-```
-
-### Run on specific device:
-```bash
-# List available devices
-flutter devices
-
-# Run on specific device
-flutter run -d <device_id>
-```
-
-### Run in release mode:
-```bash
-flutter run --release
-```
 
 ---
 
@@ -450,61 +414,6 @@ To find your local IP:
 - ✅ Analytics dashboard
 - ✅ Cross-platform (iOS, Android, Web, Desktop)
 
----
-
-## 🛠️ Development Commands
-
-### Clean build artifacts:
-```bash
-flutter clean
-```
-
-### Analyze code quality:
-```bash
-flutter analyze
-```
-
-### Format code:
-```bash
-flutter format lib/
-```
-
-### Build APK (Android):
-```bash
-flutter build apk --release
-```
-
-### Build iOS:
-```bash
-flutter build ios --release
-```
-
-### Build for Web:
-```bash
-flutter build web
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Issue: "Hive box not initialized"
-**Solution**: Ensure `HiveInit.initialize()` is called in `main()` before `runApp()`.
-
-### Issue: "Cannot find generated adapter"
-**Solution**: Run code generation:
-```bash
-flutter pub run build_runner build --delete-conflicting-outputs
-```
-
-### Issue: "Get.find() error in tests"
-**Solution**: Ensure `Get.testMode = true` and `Get.reset()` are in test setup/teardown.
-
-### Issue: "API connection failed"
-**Solution**: 
-1. Check backend server is running
-2. Verify API URL in `dio_service.dart`
-3. Check network permissions in `AndroidManifest.xml` / `Info.plist`
 
 ---
 
