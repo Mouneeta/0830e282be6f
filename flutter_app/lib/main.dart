@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:get/get.dart';
-import 'config/routes/app_router.dart';
 import 'core/resources/service_locator.dart';
+import 'core/storage/hive_init.dart';
+import 'data/data_source/local/local_storage_service.dart';
 import 'data/repositories/device_repository_impl.dart';
 import 'domain/repository/device_repository.dart';
 import 'domain/usecases/fetch_analytics_usecase.dart';
@@ -14,17 +14,27 @@ import 'presentation/page/splash_screen.dart';
 final GetIt getIt = GetIt.instance;
 final GlobalKey<NavigatorState> mNavigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Hive
+  await HiveInit.initialize();
+  
   // Initialize GetX ServiceLocator
   Get.put(ServiceLocator());
   
   // Setup GetIt dependency injection
-  setupDependencies();
+  await setupDependencies();
   
   runApp(const MyApp());
 }
 
-void setupDependencies() {
+Future<void> setupDependencies() async {
+  // Register Local Storage Service
+  final localStorageService = LocalStorageService();
+  await localStorageService.init();
+  getIt.registerSingleton<LocalStorageService>(localStorageService);
+  
   // Register Repository
   getIt.registerLazySingleton<DeviceRepository>(
     () => DeviceRepositoryImpl(),
@@ -52,44 +62,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Device Vitals',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
       home: const SplashScreen(),
     );
   }
 }
 
-class VitalMonitor extends StatelessWidget {
-  VitalMonitor({
-    super.key,
-  });
-  final AppRouter router = AppRouter(mNavigatorKey);
-
-  @override
-  Widget build(BuildContext context) => ScreenUtilInit(
-    // Size of the device the designer uses in their designs on Figma
-    designSize: const Size(428, 926),
-    builder: (_, _) {
-      return MaterialApp.router(
-        onGenerateTitle: (_) => 'Vital Monitor',
-        debugShowCheckedModeBanner: false,
-        routerDelegate: router.appRouter.routerDelegate,
-        routeInformationParser: router.appRouter.routeInformationParser,
-        routeInformationProvider: router.appRouter.routeInformationProvider,
-        builder: (context, child) {
-          final MediaQueryData data = MediaQuery.of(context);
-
-          return MediaQuery(
-            data: data.copyWith(textScaler: const TextScaler.linear(1.0)),
-            child: Material(
-              child: child
-            ),
-          );
-        },
-      );
-    },
-  );
-}
 

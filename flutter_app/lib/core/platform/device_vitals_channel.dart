@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/services.dart';
 
 class DeviceVitalChannel {
@@ -8,7 +9,7 @@ class DeviceVitalChannel {
       final result = await platform.invokeMethod('getDeviceStatus');
       return Map<String, dynamic>.from(result);
     } on PlatformException catch (e) {
-      print("Failed to get device status: '${e.message}'.");
+      log("Failed to get device status: '${e.message}'.");
       return {};
     }
   }

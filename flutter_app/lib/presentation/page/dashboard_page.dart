@@ -25,29 +25,30 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     fetchDeviceStatus();
-    
+
     // Fetch analytics for performance overview
-   /* Future.microtask(() {
+    /* Future.microtask(() {
       context.read<DeviceVitalsBloc>().add(const FetchAnalytics());
     });*/
 
     // Option 1: manual Bloc listener
     final bloc = context.read<DeviceVitalsBloc>();
     _blocSubscription = bloc.stream.listen((state) {
-     // if (!mounted) return;
+      // if (!mounted) return;
 
       if (state is DeviceVitalsPosting && mounted) {
         // show loading dialog
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ),
+          builder: (context) =>
+              const Center(child: CircularProgressIndicator()),
         );
       } else {
         // close loading dialog if open
-        if (Navigator.canPop(context)) Navigator.of(context).pop();
+        if(mounted){
+          if (Navigator.canPop(context)) Navigator.of(context).pop();
+        }
       }
 
       if (state is DeviceVitalsPosted && mounted) {
@@ -109,7 +110,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: CustomAppBar(title: 'Device Vitals', actions: [],),
+      appBar: CustomAppBar(title: 'Device Vitals', actions: []),
       body: RefreshIndicator(
         onRefresh: fetchDeviceStatus,
         child: ListView(
@@ -121,17 +122,19 @@ class _DashboardPageState extends State<DashboardPage> {
               margin: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: Colors.green)
+                border: Border.all(color: Colors.green),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.devices, size: 20,),
+                  const Icon(Icons.devices, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     "Device ID: ${deviceStatus["device_id"] ?? 'N/A'}",
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700,),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
@@ -147,54 +150,63 @@ class _DashboardPageState extends State<DashboardPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 BlocBuilder<DeviceVitalsBloc, DeviceVitalsState>(
-                builder: (context, state) {
-              final isLoading = state is DeviceVitalsPosting;
+                  builder: (context, state) {
+                    final isLoading = state is DeviceVitalsPosting;
 
-              return ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : _postDeviceStatus,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  foregroundColor: Colors.white,
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  elevation: 2,
+                    return ElevatedButton(
+                      onPressed: isLoading ? null : _postDeviceStatus,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.lightBlueAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.cloud_upload),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Post Status',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                    );
+                  },
                 ),
-                child: isLoading
-                    ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor:
-                    AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-                    : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.cloud_upload),
-                    SizedBox(width: 8),
-                    Text('Post Status'),
-                  ],
-                ),
-              );
-            },
-            ),
 
                 ElevatedButton.icon(
                   onPressed: ()=> fetchDeviceStatus(),
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh Status'),
+                  label: const Text(
+                    'Refresh Status',
+                    style: TextStyle(fontSize: 14),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 25, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 16,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -231,30 +243,31 @@ class _DashboardPageState extends State<DashboardPage> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 3,
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.4,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      childAspectRatio: 1.2,
       children: [
         _buildMetricCard(
           title: 'Battery',
           value: '${deviceData["battery_level"] ?? 'N/A'}%',
           color: Colors.green,
-          icon: Icon(Icons.battery_unknown_rounded,
-              color: Colors.green, size: 20),
+          icon: Icon(
+            Icons.battery_unknown_rounded,
+            color: Colors.green,
+            size: 25,
+          ),
         ),
         _buildMetricCard(
           title: 'Thermal',
           value: '${deviceData["thermal_value"] ?? 'N/A'}°C',
           color: Colors.orange,
-          icon: Icon(Icons.thermostat,
-              color:Colors.orange, size: 20),
+          icon: Icon(Icons.thermostat, color: Colors.orange, size: 25),
         ),
         _buildMetricCard(
           title: 'Memory',
           value: '${deviceData["memory_usage"] ?? 'N/A'}',
           color: Colors.blue,
-          icon: Icon(Icons.memory,
-              color: Colors.blue, size: 20),
+          icon: Icon(Icons.memory, color: Colors.blue, size: 25),
         ),
       ],
     );
@@ -267,16 +280,37 @@ class _DashboardPageState extends State<DashboardPage> {
     required Icon icon,
   }) {
     return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(title, style:  TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w500)),
-            icon
-          ]),
-          Text(value, style:  TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              icon,
+            ],
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -288,7 +322,13 @@ class _DashboardPageState extends State<DashboardPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,14 +336,18 @@ class _DashboardPageState extends State<DashboardPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Performance Overview',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
-              Text('Last 10 Records',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              const Text(
+                'Performance Overview',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
-          
+
           // Analytics Metrics
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -331,7 +375,7 @@ class _DashboardPageState extends State<DashboardPage> {
           const SizedBox(height: 20),
           const Divider(),
           const SizedBox(height: 20),
-          
+
           // Min/Max Comparison Chart
           SizedBox(
             height: 150,
@@ -357,7 +401,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   'Memory',
                   analytics.avgMemoryUsage.toDouble(),
                   analytics.maxMemoryUsage.toDouble(),
-                  analytics.maxMemoryUsage > 0 ? analytics.maxMemoryUsage.toDouble() : 100.0,
+                  analytics.maxMemoryUsage > 0
+                      ? analytics.maxMemoryUsage.toDouble()
+                      : 100.0,
                   Colors.blue,
                 ),
               ],
@@ -374,7 +420,13 @@ class _DashboardPageState extends State<DashboardPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: const Center(
         child: Padding(
@@ -391,13 +443,25 @@ class _DashboardPageState extends State<DashboardPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Performance Overview',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+          const Text(
+            'Performance Overview',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
+          ),
           const SizedBox(height: 20),
           Center(
             child: Text(
@@ -411,7 +475,12 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildAnalyticsMetric(String label, String value, Color color, IconData icon) {
+  Widget _buildAnalyticsMetric(
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -425,21 +494,21 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }
 
-  Widget _buildComparisonBar(String label, double value1, double value2, double maxValue, Color color) {
+  Widget _buildComparisonBar(
+    String label,
+    double value1,
+    double value2,
+    double maxValue,
+    Color color,
+  ) {
     final height1 = (value1 / maxValue * 120).clamp(10.0, 120.0);
     final height2 = (value2 / maxValue * 120).clamp(10.0, 120.0);
-    
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -483,31 +552,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-      ],
-    );
-  }
-
-  Widget _buildBarChart(String label, double height1, double height2) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Container(
-            width: 16,
-            height: 120 * height1,
-            decoration:
-            BoxDecoration(color: Colors.green.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(8)),
-          ),
-          const SizedBox(width: 4),
-          Container(
-            width: 16,
-            height: 120 * height2,
-            decoration:
-            BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(8)),
-          ),
-        ]),
         const SizedBox(height: 8),
         Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
       ],
