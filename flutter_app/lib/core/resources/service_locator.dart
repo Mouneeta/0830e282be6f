@@ -8,7 +8,7 @@ class ServiceLocator {
   ApiService apiService() {
 
     /// Add you local IP address here
-    _apiService ??= DioService(baseUrl: 'http://172.20.10.4:3000');
+    _apiService ??= DioService(baseUrl: 'http://10.103.5.77:3000');
 
     return _apiService!;
   }

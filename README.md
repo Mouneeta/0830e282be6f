@@ -371,38 +371,69 @@ The app follows **Clean Architecture** principles with clear separation of conce
 
 ---
 
+Got it! Here’s a **clean, professional, copy-ready version** of the API integration section for your README, using your correct IP (`10.103.5.77`) and formatted nicely:
+
+---
+
 ## 🔌 API Integration
 
-The app connects to the backend API for device vitals data.
+The app connects to the backend API to fetch and post **device vitals data**.
 
 ### API Configuration
 
-**IMPORTANT:** Update the base URL in `lib/core/resources/service_locator.dart`:
+Update the base URL in your Flutter project at:
 
 ```dart
+// lib/core/resources/service_locator.dart
+
 ApiService apiService() {
-  /// Add your local IP address here
-  _apiService ??= DioService(baseUrl: 'http://172.20.10.4:3000');
+  /// Replace with your local machine's IP address
+  /// For this setup, your local IP is 10.103.5.77
+  _apiService ??= DioService(baseUrl: 'http://10.103.5.77:3000');
   return _apiService!;
 }
 ```
 
-**Replace `172.20.10.4` with your local machine's IP address.**
+**Finding your local IP (if needed in the future):**
 
-To find your local IP:
-- **macOS/Linux**: Run `ifconfig | grep "inet "` in terminal
-- **Windows**: Run `ipconfig` in command prompt
-- **Or use**: `localhost` if testing on emulator/simulator on the same machine
+* **macOS / Linux:**
+
+  ```bash
+  ifconfig | grep "inet "
+  ```
+
+  Look for an IP like `192.168.x.x` or `10.x.x.x` under your active network interface (ignore `127.0.0.1` and `169.254.x.x`).
+
+* **Windows:**
+
+  ```cmd
+  ipconfig
+  ```
+
+  Look for the `IPv4 Address` under your active network adapter.
+
+**Emulator / Simulator shortcuts:**
+
+| Environment      | Base URL                  |
+| ---------------- | ------------------------- |
+| Android Emulator | `http://10.0.2.2:3000`    |
+| iOS Simulator    | `http://localhost:3000`   |
+| Physical Device  | `http://10.103.5.77:3000` |
+
+> ⚠️ Make sure your device and your computer are on the same network when testing on a physical device.
+
+---
 
 ### Endpoints Used
 
-| Method | Endpoint                  | Description                    |
-|--------|---------------------------|--------------------------------|
-| GET    | `/api/vitals`             | Fetch device vitals (paginated)|
-| GET    | `/api/vitals/analytics`   | Fetch analytics data           |
-| POST   | `/api/vitals`             | Post new device vitals         |
+| Method | Endpoint                | Description                     |
+| ------ | ----------------------- | ------------------------------- |
+| GET    | `/api/vitals`           | Fetch device vitals (paginated) |
+| GET    | `/api/vitals/analytics` | Fetch analytics data            |
+| POST   | `/api/vitals`           | Post new device vitals          |
 
 ---
+
 
 ## 📱 Features
 
