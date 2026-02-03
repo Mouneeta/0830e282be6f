@@ -105,8 +105,8 @@ A cross-platform mobile application built with Flutter for monitoring and visual
 
 ## 🚀 Technologies Used
 
-- **Flutter 3.8.0** - UI framework
-- **Dart SDK** ^3.10.0-290.4.beta
+- **Flutter 3.38.8 - UI framework
+- **Dart 3.10.7
 - **BLoC Pattern** - State management (flutter_bloc)
 - **Hive** - Local NoSQL database for offline storage
 - **Dio** - HTTP client for API requests
