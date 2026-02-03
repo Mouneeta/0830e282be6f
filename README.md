@@ -97,7 +97,7 @@ This backend is designed to be **simple**, **easy to set up**, and suitable for 
 
 ---
 
-# 📱 Flutter App – Device Vitals Monitor
+# 📱 Flutter App – Device Vitals
 
 A cross-platform mobile application built with Flutter for monitoring and visualizing device vitals data with offline-first architecture.
 
