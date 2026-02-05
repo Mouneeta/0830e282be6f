@@ -62,7 +62,7 @@ Before you begin, ensure you have the following installed:
 Start the server with:
 
 ```bash
-npm start
+npm start or node index.js
 ```
 
 The server will run on **http://localhost:3000** (or the port defined in `index.js`).
